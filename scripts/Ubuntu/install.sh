@@ -2,7 +2,7 @@
 set -Eeuo pipefail
 
 if [[ ${EUID} -ne 0 ]]; then
-  echo "Run this script with sudo: sudo ./scripts/install-ubuntu.sh" >&2
+  echo "Run this script with sudo: sudo bash scripts/Ubuntu/install-ubuntu.sh" >&2
   exit 1
 fi
 

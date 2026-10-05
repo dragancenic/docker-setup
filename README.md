@@ -16,15 +16,15 @@ Run these scripts separately when their settings match your server:
 
 ```bash
 # Show a read-only host summary before and after setup.
-bash scripts/check-ubuntu-host.sh
+bash scripts/Ubuntu/check-ubuntu-host.sh
 
 # Set an IANA timezone (example only).
-sudo bash scripts/set-ubuntu-timezone.sh Europe/Belgrade
+sudo bash scripts/Ubuntu/set-ubuntu-timezone.sh Europe/Belgrade
 
 # Allow the actual SSH port before enabling UFW. Add host ports only as needed.
-sudo bash scripts/configure-ubuntu-firewall.sh --ssh-port 22
+sudo bash scripts/Ubuntu/configure-ubuntu-firewall.sh --ssh-port 22
 # Example with additional host ports:
-sudo bash scripts/configure-ubuntu-firewall.sh --ssh-port 22 --allow-tcp 80 --allow-tcp 443
+sudo bash scripts/Ubuntu/configure-ubuntu-firewall.sh --ssh-port 22 --allow-tcp 80 --allow-tcp 443
 ```
 
 The firewall script asks UFW to confirm activation. Keep the current SSH session open and verify a second connection before closing it. If the current session provides its SSH port, the script rejects a different `--ssh-port` value. Running UFW does **not** restrict Docker-published container ports; review those ports separately using [Docker's firewall guidance](https://docs.docker.com/engine/network/packet-filtering-firewalls/).
@@ -37,7 +37,7 @@ Copy this folder to an Ubuntu server where you have sudo access, then run:
 
 ```bash
 cd docker-setup
-sudo bash scripts/install-ubuntu.sh
+sudo bash scripts/Ubuntu/install-ubuntu.sh
 sudo docker compose version
 sudo docker info --format '{{.ServerVersion}}'
 ```

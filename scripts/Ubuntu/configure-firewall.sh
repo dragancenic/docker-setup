@@ -3,7 +3,7 @@ set -Eeuo pipefail
 
 usage() {
   cat <<'EOF'
-Usage: sudo bash scripts/configure-ubuntu-firewall.sh --ssh-port PORT [--allow-tcp PORT] [--allow-udp PORT]...
+Usage: sudo bash scripts/Ubuntu/configure-ubuntu-firewall.sh --ssh-port PORT [--allow-tcp PORT] [--allow-udp PORT]...
 
 Allow the specified SSH port before enabling UFW. Additional ports are optional.
 Docker-published container ports can bypass UFW rules.

@@ -6,7 +6,7 @@ if [[ ${EUID} -ne 0 ]]; then
   exit 1
 fi
 if (($# != 1)); then
-  echo "Usage: sudo bash scripts/set-ubuntu-timezone.sh AREA/CITY" >&2
+  echo "Usage: sudo bash scripts/Ubuntu/set-ubuntu-timezone.sh AREA/CITY" >&2
   exit 2
 fi
 if [[ ! -r /etc/os-release ]]; then
