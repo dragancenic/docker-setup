@@ -3,10 +3,10 @@ set -Eeuo pipefail
 
 usage() {
   cat <<'EOF'
-Usage: sudo bash scripts/Ubuntu/configure-firewall.sh --ssh-port PORT [--allow-tcp PORT] [--allow-udp PORT]...
+Usage: sudo bash scripts/Fedora/configure-firewall.sh --ssh-port PORT [--allow-tcp PORT] [--allow-udp PORT]...
 
-Allow the specified SSH port before enabling UFW. Additional ports are optional.
-Docker-published container ports can bypass UFW rules.
+Allow the specified SSH port before enabling firewalld. Additional ports are optional.
+Docker-published container ports can bypass firewalld rules.
 EOF
 }
 
@@ -21,8 +21,8 @@ if [[ ! -r /etc/os-release ]]; then
 fi
 # shellcheck source=/dev/null
 source /etc/os-release
-if [[ ${ID:-} != ubuntu ]]; then
-  echo "This script supports Ubuntu only." >&2
+if [[ ${ID:-} != fedora ]]; then
+  echo "This script supports Fedora only." >&2
   exit 1
 fi
 
@@ -67,24 +67,19 @@ if [[ -n ${SSH_CONNECTION:-} ]]; then
   fi
 fi
 
-if ! command -v ufw >/dev/null; then
-  apt-get update
-  DEBIAN_FRONTEND=noninteractive apt-get install -y ufw
+if ! command -v firewall-cmd >/dev/null; then
+  dnf install -y firewalld
 fi
 
-echo "Allowing SSH on ${ssh_port}/tcp before enabling UFW."
-ufw allow "${ssh_port}/tcp"
+systemctl enable --now firewalld
+active_zone=$(firewall-cmd --get-default-zone)
+echo "Allowing SSH on ${ssh_port}/tcp in the ${active_zone} zone."
+firewall-cmd --zone="$active_zone" --add-port="${ssh_port}/tcp"
+firewall-cmd --permanent --zone="$active_zone" --add-port="${ssh_port}/tcp"
 for rule in "${extra_rules[@]}"; do
-  ufw allow "$rule"
+  firewall-cmd --zone="$active_zone" --add-port="$rule"
+  firewall-cmd --permanent --zone="$active_zone" --add-port="$rule"
 done
 
-ufw_status=$(LC_ALL=C ufw status)
-if [[ $ufw_status != *'Status: active'* ]]; then
-  ufw default deny incoming
-  ufw default allow outgoing
-  echo "UFW will now ask you to confirm activation. Keep your current SSH session open and test a second connection afterward."
-  ufw enable
-fi
-
-ufw status verbose
-echo "Reminder: Docker-published ports can bypass UFW. Review each published container port separately."
+firewall-cmd --zone="$active_zone" --list-all
+echo "Reminder: Docker-published ports can bypass firewalld. Review each published container port separately."

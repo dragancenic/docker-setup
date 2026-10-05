@@ -6,7 +6,7 @@ if [[ ${EUID} -ne 0 ]]; then
   exit 1
 fi
 if (($# != 1)); then
-  echo "Usage: sudo bash scripts/Ubuntu/set-timezone.sh AREA/CITY" >&2
+  echo "Usage: sudo bash scripts/Debian/set-timezone.sh AREA/CITY" >&2
   exit 2
 fi
 if [[ ! -r /etc/os-release ]]; then
@@ -15,8 +15,8 @@ if [[ ! -r /etc/os-release ]]; then
 fi
 # shellcheck source=/dev/null
 source /etc/os-release
-if [[ ${ID:-} != ubuntu ]]; then
-  echo "This script supports Ubuntu only." >&2
+if [[ ${ID:-} != debian ]]; then
+  echo "This script supports Debian only." >&2
   exit 1
 fi
 if ! command -v timedatectl >/dev/null; then
