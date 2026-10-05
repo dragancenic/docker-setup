@@ -1,4 +1,4 @@
-# Linux Docker Setup
+# Docker Setup
 
 Prepare an Ubuntu server for Docker workloads. The installer currently supports Ubuntu 22.04, 24.04, and 26.04 LTS. This repository sets up Docker and its supporting components; application deployment belongs in separate projects.
 
@@ -36,7 +36,7 @@ The host check reports whether `unattended-upgrades` is installed. Ubuntu Server
 Copy this folder to an Ubuntu server where you have sudo access, then run:
 
 ```bash
-cd linux-docker-setup
+cd docker-setup
 sudo bash scripts/install-ubuntu.sh
 sudo docker compose version
 sudo docker info --format '{{.ServerVersion}}'
