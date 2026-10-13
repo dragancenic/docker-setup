@@ -10,6 +10,106 @@ Prepare an Ubuntu, Debian, Fedora, or Red Hat Enterprise Linux server for Docker
 
 The script does not remove existing Docker packages or data. If it finds conflicting packages, it stops and lists them. It does not add users to the `docker` group.
 
+## First steps after installing Linux
+
+Start here if the server is freshly installed and you only have a `root` account. Create a personal administrator account first, then use that account for the rest of this guide, with `sudo` when required.
+
+### 1. Log in as root and create an administrator account
+
+From your local computer, connect to the server (replace `SERVER_IP` with its address; add `-p PORT` if SSH uses a different port):
+
+```bash
+ssh root@SERVER_IP
+```
+
+In this root session, choose your username. The examples use `deploy`; replace it with the name you want. Use a simple Linux username, such as lowercase letters and digits, starting with a letter.
+
+```bash
+SERVER_USER=deploy
+```
+
+Run **only the block for your distribution**. On Ubuntu and Debian, administrators belong to the `sudo` group:
+
+```bash
+apt-get update
+apt-get install -y sudo
+adduser "$SERVER_USER"
+usermod -aG sudo "$SERVER_USER"
+```
+
+On Fedora and RHEL, administrators belong to the `wheel` group. For RHEL, register the server with Red Hat Subscription Management before installing packages (`subscription-manager register`, using your organization's subscription details).
+
+```bash
+dnf install -y sudo
+useradd --create-home --shell /bin/bash "$SERVER_USER"
+passwd "$SERVER_USER"
+usermod -aG wheel "$SERVER_USER"
+```
+
+Set a password when prompted; the new account will use it for `sudo`.
+
+### 2. Enable SSH access and verify the new account
+
+If you logged in as root with an SSH key stored in `/root/.ssh/authorized_keys`, the following commands authorize those same keys for the new account. Run them in the same root session, only if you want those keys to have access:
+
+```bash
+USER_HOME=$(getent passwd "$SERVER_USER" | cut -d: -f6)
+USER_GROUP=$(id -gn "$SERVER_USER")
+install -d -m 700 -o "$SERVER_USER" -g "$USER_GROUP" "$USER_HOME/.ssh"
+install -m 600 -o "$SERVER_USER" -g "$USER_GROUP" /root/.ssh/authorized_keys "$USER_HOME/.ssh/authorized_keys"
+```
+
+On Fedora and RHEL, also restore the SSH directory's SELinux labels:
+
+```bash
+restorecon -RF "$USER_HOME/.ssh"
+```
+
+If you use password authentication and the server allows it, log in with the new account's password instead. If your SSH key is not in root's `authorized_keys`, put your public key in the new account's `~/.ssh/authorized_keys` with the ownership and permissions shown above.
+
+Keep the root session open. Open a **second terminal on your local computer** and connect with the username you chose:
+
+```bash
+ssh deploy@SERVER_IP
+sudo -v
+sudo id -u
+```
+
+Replace `deploy` and `SERVER_IP`, and use the same SSH port as before. The last command must print `0`. If login or `sudo` fails, fix it from the open root session before continuing. Once both work, use this new account for all remaining steps.
+
+### 3. Update the system and install Git
+
+In the new account's server session, run **only the block for your distribution**.
+
+Ubuntu or Debian:
+
+```bash
+sudo apt-get update
+sudo apt-get upgrade -y
+sudo apt-get install -y git ca-certificates
+```
+
+Fedora or RHEL:
+
+```bash
+sudo dnf upgrade -y
+sudo dnf install -y git ca-certificates
+```
+
+If the updates require a reboot, run `sudo reboot`, wait for the server to return, then reconnect with your new account before continuing.
+
+### 4. Download this repository
+
+Clone the repository into the new account's home directory, without `sudo`:
+
+```bash
+cd ~
+git clone https://github.com/dragancenic/docker-setup.git
+cd ~/docker-setup
+```
+
+Run the optional host preparation below if needed, then follow the Docker quick start for your distribution. All `scripts/...` commands in this guide assume your current directory is `~/docker-setup`. After reconnecting to the server, run `cd ~/docker-setup` again before using them.
+
 ## Optional Ubuntu host preparation
 
 Run these scripts separately when their settings match your server:
@@ -92,10 +192,9 @@ The firewall script enables `firewalld`, then adds the specified ports to its de
 
 ## Quick start: Ubuntu
 
-Copy this folder to an Ubuntu server where you have sudo access, then run:
+After completing the first steps above, run these commands from `~/docker-setup` on your Ubuntu server:
 
 ```bash
-cd docker-setup
 sudo bash scripts/Ubuntu/install.sh
 sudo docker compose version
 sudo docker info --format '{{.ServerVersion}}'
@@ -105,10 +204,9 @@ You can rerun the script to install missing packages. Use `sudo docker` and `sud
 
 ## Quick start: Debian 13
 
-Copy this folder to a Debian 13 server where you have sudo access, then run:
+After completing the first steps above, run these commands from `~/docker-setup` on your Debian 13 server:
 
 ```bash
-cd docker-setup
 sudo bash scripts/Debian/install.sh
 sudo docker compose version
 sudo docker info --format '{{.ServerVersion}}'
@@ -118,10 +216,9 @@ The Debian installer stops if it finds conflicting Docker packages and never rem
 
 ## Quick start: Fedora 44
 
-Copy this folder to a Fedora 44 server where you have sudo access, then run:
+After completing the first steps above, run these commands from `~/docker-setup` on your Fedora 44 server:
 
 ```bash
-cd docker-setup
 sudo bash scripts/Fedora/install.sh
 sudo docker compose version
 sudo docker info --format '{{.ServerVersion}}'
@@ -131,10 +228,9 @@ The Fedora installer stops if it finds conflicting Docker packages and never rem
 
 ## Quick start: Red Hat Enterprise Linux 10
 
-Register the RHEL host with Red Hat Subscription Management, then copy this folder to it and run:
+After completing the first steps above, including Red Hat Subscription Management registration, run these commands from `~/docker-setup` on your RHEL 10 server:
 
 ```bash
-cd docker-setup
 sudo bash scripts/RHEL/install.sh
 sudo docker compose version
 sudo docker info --format '{{.ServerVersion}}'
